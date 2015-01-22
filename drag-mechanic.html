@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Gem Mines RPG - Tile Dragging Mechanic</title>
+</head>
+<link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<style>
+* {
+	font-family: 'Varela Round', sans-serif;
+	
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+html, body {
+	margin:0;
+	padding:0;
+}
+
+#grid {
+	height:100%;
+	margin:0;
+	padding:0;
+	position:relative;
+	width:100%;
+}
+
+.tile {
+	border:1px solid #789;
+	color:transparent;
+	content:",";
+	height:48px;
+	left:0;
+	position:absolute;
+	top:0;
+	width:48px;
+}
+.tile:hover {
+	background-color:#9f9;
+}
+.tile.active {
+	background-color:#959;
+}
+.tile.purple {
+	background-image: url( 'kenney-puzzlepack/png/element_purple_diamond.png' );
+}
+.tile.red {
+	background-image: url( 'kenney-puzzlepack/png/element_red_diamond.png' );
+}
+.tile.yellow {
+	background-image: url( 'kenney-puzzlepack/png/element_yellow_diamond.png' );
+}
+.tile.green {
+	background-image: url( 'kenney-puzzlepack/png/element_green_diamond.png' );
+}
+.tile.blue {
+	background-image: url( 'kenney-puzzlepack/png/element_blue_diamond.png' );
+}
+.tile.grey {
+	background-image: url( 'kenney-puzzlepack/png/element_grey_diamond.png' );
+}
+
+#msg {
+	background-color:rgba( 122, 122, 122, 0.8 );
+	bottom:0;
+	margin:10px;
+	padding:10px;
+	position:absolute;
+}
+
+</style>
+<body>
+<div id="grid"></div>
+<div id="msg"></div>
+
+<script>
+var und;
+
+var gems = [ 'purple', 'red', 'yellow', 'green', 'blue', 'grey' ];
+
+function Tile ( x, y, size, name, g, id ) {
+	var x = x || 0;
+	var y = y || 0;
+	
+	var newTile = document.createElement('div');
+	var gemColor = gems[ Math.floor(Math.random() * gems.length) ];
+	newTile.classList.add( 'tile' );
+	newTile.classList.add( gemColor );
+	newTile.style.top = ( y * size ) + "px";
+	newTile.style.left = ( x * size ) + "px";
+	newTile.dataset.gemColor = gemColor;
+	newTile.dataset.id = id;
+	newTile.dataset.x = x;
+	newTile.dataset.y = y;
+	var grid = document.getElementById( "grid" );
+	newTile.addEventListener( "mousedown", function(){
+		g.startDrag( this );
+	}, false);
+	grid.appendChild( newTile );
+	
+	return {
+		element: newTile,
+		x: x,
+		y: y,
+		id: id,
+		gemColor: gemColor,
+		flipTile: function () {
+			// remove classes
+			this.element.classList.remove( this.gemColor );
+			
+			// apply a new color
+			var newColor = gems[ Math.floor(Math.random() * gems.length) ];
+			console.log( "Change tile " + this.id + " from " + this.gemColor + " to " + newColor );
+			this.element.classList.add( newColor );
+			this.element.dataset.gemColor = newColor;
+		}
+	};
+};
+
+var grid = {
+	tiles: [],
+	tileDims: 0,
+	mouseDown: false,
+	dragPath: {
+		color: '',
+		tiles: [],
+		minimum: 2,
+		lastTile: 0,
+		lastX: 0,
+		lastY: 0
+	},
+	mouse: {
+		position: {
+			x:0,
+			y:0,
+		}
+	},
+	init: function ( dims, tilesX, tilesY ) {
+		this.resize();
+		this.removeChildren();
+		this.tiles.length = 0;
+		this.tileDims = dims;
+		
+	//	console.log( 'init: ' + tilesX + " " + tilesY );
+		
+		for( y = 0; y < tilesY; y++ ) {
+			for( x = 0; x < tilesX; x++ ) {
+				var newTile =  new Tile( x, y, dims, name, grid, this.tiles.length );
+				this.tiles.push( newTile );
+				console.log( this.tiles.length + " - " +  x + " - " + y );
+			}
+		}
+	},
+	removeChildren: function () {
+		var grid = document.getElementById("grid");
+		while (grid.firstChild) {
+			grid.removeChild( grid.firstChild );
+		}
+	},
+	update: function () {
+		
+	},
+	resize: function () {
+		var width = document.getElementById( "grid" ).offsetWidth;
+		//console.log( "grid width: " + this.width  );
+		
+		// This needs to figure out the largest square that fits?
+	},
+	mouseMove: function ( m ) {
+		var mp = {
+			x: parseInt( m.x / this.tileDims ),
+			y: parseInt( m.y / this.tileDims )
+		};
+		var foundDiv = this.findDivAt( mp.x, mp.y );
+		if(foundDiv != und ) {
+			
+			// check if this is in the stack
+			var inStack = this.dragPath.tiles.indexOf( foundDiv.number );
+			
+			// check if this is the right color
+			var tileColor = foundDiv.tile.gemColor;
+			
+			// check to see if it's next to this
+			var lastPos = {
+				x: this.dragPath.lastX,
+				y: this.dragPath.lastY
+			};
+			var diffX = Math.abs( lastPos.x - mp.x );
+			var diffY = Math.abs( lastPos.y - mp.y );
+			var diff = Math.abs( ( lastPos.x - mp.x ) + ( lastPos.y - mp.y ) );
+		//	console.log( lastPos );
+		//	console.log( mp );
+		//	console.log( "DIFF = " + diff)
+			
+			if( inStack == -1 && tileColor == this.dragPath.color 
+				&& diff == 1 && diffX <=1 && diffY <= 1 ) {
+				this.dragPath.tiles.push( foundDiv.number );
+				this.dragPath.lastTile = foundDiv.number;
+				this.dragPath.lastX = foundDiv.tile.x;
+				this.dragPath.lastY = foundDiv.tile.y;
+				
+				// we probaby need to do more here
+				// need to at least assign the active change here
+				foundDiv.tile.element.classList.add( "active" );
+			} else if( inStack != -1 ) {
+			//	console.log( "Player backtracked to tile#: " + foundDiv.number );
+			//	console.table( this.dragPath.tiles );
+			}
+			
+		}
+	},
+	releaseTrigger: function () {
+		this.mouseDown = false;
+		var tileCount = this.dragPath.tiles.length + 1;
+		var msgHolder = document.getElementById( "msg" );
+		
+		if( tileCount >= this.dragPath.minimum ) {
+			msgHolder.innerHTML = "Number of Tiles selected: " + tileCount;
+			
+			console.log( "Clear these" );
+			console.log( this.dragPath.tiles );
+			for( i = 0; i < this.dragPath.tiles.length; i++ ) {
+				this.tiles[ this.dragPath.tiles[ i ] ].flipTile();
+			}
+			console.log( "Cleared" );
+			
+		} else {
+			msgHolder.innerHTML = "Not enough Tiles selected (" + tileCount + " of " + this.dragPath.minimum + ")";
+		}
+		
+		// clear the data
+		this.dragPath.tiles.length = 0;
+		this.dragPath.color = '';
+		this.dragPath.lastTile = {};
+		this.dragPath.lastX = 0;
+		this.dragPath.lastY = 0;
+		
+		var tiles = document.getElementsByClassName( "tile" );
+		var tileCount = tiles.length;
+		for( x = 0; x < tileCount; x++ ) {
+			tiles[ x ].classList.remove( "active" );
+		}
+		
+	//	console.log( "Remove click" );
+	},
+	startDrag: function ( caller ) {
+		this.mouseDown = true;
+		caller.classList.add( "active" );
+		this.dragPath.color = caller.dataset.gemColor;
+		
+		var pos = {};
+			pos.y = parseInt( caller.style.top ) / this.tileDims;
+			pos.x = parseInt( caller.style.left ) / this.tileDims;
+		this.dragPath.tiles.push( parseInt( caller.dataset.id ) );
+		this.dragPath.lastTile = pos;
+		this.dragPath.lastX = pos.x;
+		this.dragPath.lastY = pos.y;
+	},
+	findDivAt: function ( x, y ) {
+		for( i = 0; i < this.tiles.length; i++ ) {
+			if( this.tiles[ i ].x == x && this.tiles[ i ].y == y ) {
+				return {
+					'tile': this.tiles[ i ],
+					'number': i
+				};
+			}
+		}
+	},
+};
+
+var player = {
+	score: 0,
+};
+
+grid.init( 50, 10, 10 );
+window.onresize = resize;
+function resize() { 
+//	console.log( "resize the grid!" );
+	grid.resize();
+}
+
+/*
+document.getElementById( "lastPage" ).addEventListener("click", function(){ book.changePage( -1 ) }, false);
+document.getElementById( "nextPage" ).addEventListener("click", function(){ book.changePage( 1 ) }, false);
+*/
+
+/*
+// Bind tile click events
+var tileObjs = document.getElementsByClassName( "tile" );
+for( x = 0; x < tileObjs.length; x++ ) {
+	tileObjs[ x ].addEventListener( "mousedown", function(){
+		console.log( "Dynamic Click" ); // bind the click event
+	}, false);
+}
+*/
+
+// release all
+document.addEventListener("mouseup", function(){
+	grid.releaseTrigger();
+}, false);
+
+// Add mouse position tracking
+document.addEventListener('mousemove', function( e ){
+	if( grid.mouseDown == true) {
+		grid.mouseMove( e );
+	}
+ //   console.log( e.x + ", " + e.y );
+/*	book.mouse.position.x = e.x;	// Probably don't need to track these
+	book.mouse.position.y = e.y;
+	
+	// FOR NOW -> Just handle drag right cases.
+	
+	if( book.holdingTrigger != und ) {
+		book.holdingTrigger.style.left = e.x + "px";
+		var dragData = book.holdingTrigger.dataset.dragInfo.split( "|" );
+		//console.log( dragData );
+		if( dragData[ 0 ] == 'right' ) { // 0 = direction, 1 = start, 2 = end
+			var currentPercent = e.x / book.width * 100;
+			if( currentPercent > dragData[ 2 ] ) {
+				book.changePage( 1 );
+				book.holdingTrigger.style.left = dragData[ 1 ] + "px";
+			}
+		}
+	}*/
+})
+
+// add animation states
+function animate() {
+	requestAnimationFrame( animate ); // only reqeust an update when needed?
+	grid.update( );
+}
+animate();
+</script>
+
+</body>
+</html>
