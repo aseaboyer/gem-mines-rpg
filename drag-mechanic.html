@@ -30,7 +30,11 @@ html, body {
 }
 
 .tile {
-	border:1px solid #789;
+	background-color:#cdc;
+	border-top:1px solid #dbb;
+	border-right:1px solid #789;
+	border-bottom:1px solid #789;
+	border-left:1px solid #dbb;
 	color:transparent;
 	content:",";
 	height:48px;
@@ -45,22 +49,22 @@ html, body {
 .tile.active {
 	background-color:#959;
 }
-.tile.purple {
+.tile[data-gem-color='purple'] {
 	background-image: url( 'kenney-puzzlepack/png/element_purple_diamond.png' );
 }
-.tile.red {
+.tile[data-gem-color='red'] {
 	background-image: url( 'kenney-puzzlepack/png/element_red_diamond.png' );
 }
-.tile.yellow {
+.tile[data-gem-color='yellow'] {
 	background-image: url( 'kenney-puzzlepack/png/element_yellow_diamond.png' );
 }
-.tile.green {
+.tile[data-gem-color='green'] {
 	background-image: url( 'kenney-puzzlepack/png/element_green_diamond.png' );
 }
-.tile.blue {
+.tile[data-gem-color='blue'] {
 	background-image: url( 'kenney-puzzlepack/png/element_blue_diamond.png' );
 }
-.tile.grey {
+.tile[data-gem-color='grey'] {
 	background-image: url( 'kenney-puzzlepack/png/element_grey_diamond.png' );
 }
 
@@ -80,25 +84,24 @@ html, body {
 <script>
 var und;
 
-var gems = [ 'purple', 'red', 'yellow', 'green', 'blue', 'grey' ];
-
-function Tile ( x, y, size, name, g, id ) {
+function Tile ( x, y, size, color, g, id ) {
 	var x = x || 0;
 	var y = y || 0;
 	
 	var newTile = document.createElement('div');
-	var gemColor = gems[ Math.floor(Math.random() * gems.length) ];
 	newTile.classList.add( 'tile' );
-	newTile.classList.add( gemColor );
 	newTile.style.top = ( y * size ) + "px";
 	newTile.style.left = ( x * size ) + "px";
-	newTile.dataset.gemColor = gemColor;
+	newTile.dataset.gemColor = color;
 	newTile.dataset.id = id;
+	newTile.id = 'tile-' + id;
 	newTile.dataset.x = x;
 	newTile.dataset.y = y;
 	var grid = document.getElementById( "grid" );
 	newTile.addEventListener( "mousedown", function(){
-		g.startDrag( this );
+		console.log( "Clicked a " + this.getAttribute( "data-gem-color" ) );
+		// .setAttribute("data-list-size", +show+3);
+		g.startDrag( this ); // should send the id and maybe color instead?
 	}, false);
 	grid.appendChild( newTile );
 	
@@ -107,18 +110,11 @@ function Tile ( x, y, size, name, g, id ) {
 		x: x,
 		y: y,
 		id: id,
-		gemColor: gemColor,
-		flipTile: function () {
-			// remove classes
-			console.log( "was:" + this.element.classList );
-			this.element.classList.remove( this.gemColor );
-			console.log( "now:" + this.element.classList );
-			
-			// apply a new color
-			var newColor = gems[ Math.floor(Math.random() * gems.length) ];
-			console.log( "Change tile " + this.id + " from " + this.gemColor + " to " + newColor );
-			this.element.classList.add( newColor );
+		gemColor: color,
+		flipTile: function ( newColor ) {
+			// apply new color
 			this.element.dataset.gemColor = newColor;
+			this.gemColor = newColor;
 		}
 	};
 };
@@ -127,6 +123,7 @@ var grid = {
 	tiles: [],
 	tileDims: 0,
 	mouseDown: false,
+	colors: [ 'purple', 'red', 'yellow', 'green', 'blue', 'grey' ],
 	dragPath: {
 		color: '',
 		tiles: [],
@@ -151,11 +148,15 @@ var grid = {
 		
 		for( y = 0; y < tilesY; y++ ) {
 			for( x = 0; x < tilesX; x++ ) {
-				var newTile =  new Tile( x, y, dims, name, grid, this.tiles.length );
+				var newColor = this.getRandomColor();
+				var newTile =  new Tile( x, y, dims, newColor, grid, this.tiles.length );
 				this.tiles.push( newTile );
 				console.log( this.tiles.length + " - " +  x + " - " + y );
 			}
 		}
+	},
+	getRandomColor: function () {
+		return this.colors[ Math.floor(Math.random() * this.colors.length) ];
 	},
 	removeChildren: function () {
 		var grid = document.getElementById("grid");
@@ -196,7 +197,7 @@ var grid = {
 			var diff = Math.abs( ( lastPos.x - mp.x ) + ( lastPos.y - mp.y ) );
 		//	console.log( lastPos );
 		//	console.log( mp );
-		//	console.log( "DIFF = " + diff)
+		//	console.log( "DIFF = " + diff);
 			
 			if( inStack == -1 && tileColor == this.dragPath.color 
 				&& diff == 1 && diffX <=1 && diffY <= 1 ) {
@@ -226,7 +227,7 @@ var grid = {
 			console.log( "Clear these" );
 			console.log( this.dragPath.tiles );
 			for( i = 0; i < this.dragPath.tiles.length; i++ ) {
-				this.tiles[ this.dragPath.tiles[ i ] ].flipTile();
+				this.tiles[ this.dragPath.tiles[ i ] ].flipTile( this.getRandomColor() );
 			}
 			console.log( "Cleared" );
 			
@@ -236,7 +237,8 @@ var grid = {
 		
 		//
 		
-		// @andymakesthings - The issue must be that we are not updating the tiles array correctly
+		// @andymakesthings - The issue must be that we
+		// are not updating the tiles array correctly
 		// Therefore - we have conflicts.... maybe
 		
 		//
