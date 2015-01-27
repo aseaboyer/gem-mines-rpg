@@ -44,7 +44,7 @@ html, body {
 	width:48px;
 }
 .tile:hover {
-	background-color:#9f9;
+/*	background-color:#9f9;	*/
 }
 .tile.active {
 	background-color:#959;
@@ -67,6 +67,24 @@ html, body {
 .tile[data-gem-color='grey'] {
 	background-image: url( 'kenney-puzzlepack/png/element_grey_diamond.png' );
 }
+.tile[data-gem-color='purple']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_purple_diamond_glossy.png' );
+}
+.tile[data-gem-color='red']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_red_diamond_glossy.png' );
+}
+.tile[data-gem-color='yellow']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_yellow_diamond_glossy.png' );
+}
+.tile[data-gem-color='green']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_green_diamond_glossy.png' );
+}
+.tile[data-gem-color='blue']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_blue_diamond_glossy.png' );
+}
+.tile[data-gem-color='grey']:hover {
+	background-image: url( 'kenney-puzzlepack/png/element_grey_diamond_glossy.png' );
+}
 
 #msg {
 	background-color:rgba( 122, 122, 122, 0.8 );
@@ -76,10 +94,20 @@ html, body {
 	position:absolute;
 }
 
+#score {
+	background-color:rgba( 122, 122, 122, 0.8 );
+	bottom:0;
+	left:350px;
+	margin:10px;
+	padding:10px;
+	position:absolute;
+}
+
 </style>
 <body>
 <div id="grid"></div>
 <div id="msg"></div>
+<div id="score">Score: 0</div>
 
 <script>
 var und;
@@ -122,6 +150,7 @@ function Tile ( x, y, size, color, g, id ) {
 var grid = {
 	tiles: [],
 	tileDims: 0,
+	score: 0,
 	mouseDown: false,
 	colors: [ 'purple', 'red', 'yellow', 'green', 'blue', 'grey' ],
 	dragPath: {
@@ -179,7 +208,7 @@ var grid = {
 			y: parseInt( m.y / this.tileDims )
 		};
 		var foundDiv = this.findDivAt( mp.x, mp.y );
-		if(foundDiv != und ) {
+		if( foundDiv != und ) {
 			
 			// check if this is in the stack
 			var inStack = this.dragPath.tiles.indexOf( foundDiv.number );
@@ -210,8 +239,16 @@ var grid = {
 				// need to at least assign the active change here
 				foundDiv.tile.element.classList.add( "active" );
 			} else if( inStack != -1 ) {
-			//	console.log( "Player backtracked to tile#: " + foundDiv.number );
-			//	console.table( this.dragPath.tiles );
+				var valAt = this.dragPath.tiles.length - 1;
+				if( inStack < valAt ) {
+					for( i = valAt; i < this.dragPath.tiles.length; i++ ) {
+						// @andymakesthings - make sure we remove the active class
+						document.getElementById( "tile-" + this.dragPath.tiles[ i ] ).classList.remove( "active" );
+						// @andymakesthings - remove the item from the array
+						
+					}
+					this.dragPath.tiles.length = valAt;
+				}
 			}
 			
 		}
@@ -220,9 +257,12 @@ var grid = {
 		this.mouseDown = false;
 		var tileCount = this.dragPath.tiles.length;
 		var msgHolder = document.getElementById( "msg" );
+		var scoreHolder = document.getElementById( "score" );
 		
 		if( tileCount >= this.dragPath.minimum ) {
 			msgHolder.innerHTML = "Number of Tiles selected: " + tileCount;
+			this.score += tileCount;
+			scoreHolder.innerHTML = "Score: " + this.score;
 			
 			console.log( "Clear these" );
 			console.log( this.dragPath.tiles );
@@ -234,15 +274,6 @@ var grid = {
 		} else {
 			msgHolder.innerHTML = "Not enough Tiles selected (" + tileCount + " of " + this.dragPath.minimum + ")";
 		}
-		
-		//
-		
-		// @andymakesthings - The issue must be that we
-		// are not updating the tiles array correctly
-		// Therefore - we have conflicts.... maybe
-		
-		//
-		
 		
 		// clear the data
 		this.dragPath.tiles.length = 0;
@@ -293,54 +324,28 @@ var player = {
 grid.init( 50, 10, 10 );
 window.onresize = resize;
 function resize() { 
-//	console.log( "resize the grid!" );
 	grid.resize();
 }
 
-/*
-document.getElementById( "lastPage" ).addEventListener("click", function(){ book.changePage( -1 ) }, false);
-document.getElementById( "nextPage" ).addEventListener("click", function(){ book.changePage( 1 ) }, false);
-*/
-
-/*
-// Bind tile click events
-var tileObjs = document.getElementsByClassName( "tile" );
-for( x = 0; x < tileObjs.length; x++ ) {
-	tileObjs[ x ].addEventListener( "mousedown", function(){
-		console.log( "Dynamic Click" ); // bind the click event
-	}, false);
-}
-*/
-
 // release all
-document.addEventListener("mouseup", function(){
+window.addEventListener("mouseup", function(){
 	grid.releaseTrigger();
 }, false);
 
 // Add mouse position tracking
-document.addEventListener('mousemove', function( e ){
+window.onmousemove = function ( e ) {
+//	console.log( e );
 	if( grid.mouseDown == true) {
 		grid.mouseMove( e );
 	}
- //   console.log( e.x + ", " + e.y );
-/*	book.mouse.position.x = e.x;	// Probably don't need to track these
-	book.mouse.position.y = e.y;
-	
-	// FOR NOW -> Just handle drag right cases.
-	
-	if( book.holdingTrigger != und ) {
-		book.holdingTrigger.style.left = e.x + "px";
-		var dragData = book.holdingTrigger.dataset.dragInfo.split( "|" );
-		//console.log( dragData );
-		if( dragData[ 0 ] == 'right' ) { // 0 = direction, 1 = start, 2 = end
-			var currentPercent = e.x / book.width * 100;
-			if( currentPercent > dragData[ 2 ] ) {
-				book.changePage( 1 );
-				book.holdingTrigger.style.left = dragData[ 1 ] + "px";
-			}
-		}
-	}*/
-})
+}
+/* // works only in chrome
+window.addEventListener('mousemove', function( e ){
+	if( grid.mouseDown == true) {
+		grid.mouseMove( e );
+	}
+});
+*/
 
 // add animation states
 function animate() {
