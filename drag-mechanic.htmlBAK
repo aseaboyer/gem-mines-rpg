@@ -143,26 +143,10 @@ function Tile ( x, y, size, color, g, id ) {
 			// apply new color
 			this.element.dataset.gemColor = newColor;
 			this.gemColor = newColor;
-		},
-		selectTile: function ( ) {
-			this.element.classList.add( 'active' );
-		},
-		deselectTile: function ( ) {
-			this.element.classList.remove( 'active' );
-		},
+		}
 	};
 };
 
-var player = new Player();
-function Player() {
-    return {
-        position: {
-            x: 0,
-            y: 0
-        },
-    };
-}
-var tiles = [];
 var grid = {
 	tiles: [],
 	tileDims: 0,
@@ -219,29 +203,24 @@ var grid = {
 		// This needs to figure out the largest square that fits?
 	},
 	mouseMove: function ( m ) {
-		var selectedTile = parseInt( m.target.dataset.id );
 		var mp = {
-			x: this.tiles[ selectedTile ].x,
-			y: this.tiles[ selectedTile ].y
+			x: parseInt( m.x / this.tileDims ),
+			y: parseInt( m.y / this.tileDims )
 		};
-		console.log( "TileID to use " + selectedTile );
-		if( selectedTile != und ) {
-			console.log( this.dragPath.tiles );
+		var foundDiv = this.findDivAt( mp.x, mp.y );
+		if( foundDiv != und ) {
 			
 			// check if this is in the stack
-			var inStack = this.dragPath.tiles.indexOf( selectedTile );
-			console.log( inStack );
+			var inStack = this.dragPath.tiles.indexOf( foundDiv.number );
 			
 			// check if this is the right color
-			var tileColor = this.tiles[ selectedTile ].gemColor;
+			var tileColor = foundDiv.tile.gemColor;
 			
-			var lastTileNum = this.dragPath.tiles[ this.dragPath.tiles.length - 1 ];
 			// check to see if it's next to this
 			var lastPos = {
-				x: this.tiles[ lastTileNum ].x,
-				y: this.tiles[ lastTileNum ].y
+				x: this.dragPath.lastX,
+				y: this.dragPath.lastY
 			};
-			console.log( lastPos );
 			var diffX = Math.abs( lastPos.x - mp.x );
 			var diffY = Math.abs( lastPos.y - mp.y );
 			var diff = Math.abs( ( lastPos.x - mp.x ) + ( lastPos.y - mp.y ) );
@@ -251,39 +230,35 @@ var grid = {
 			
 			if( inStack == -1 && tileColor == this.dragPath.color 
 				&& diff == 1 && diffX <=1 && diffY <= 1 ) {
-				this.dragPath.tiles.push( selectedTile );
-				this.dragPath.lastTile = selectedTile;
-				this.dragPath.lastX = this.tiles[ selectedTile ].x;
-				this.dragPath.lastY = this.tiles[ selectedTile ].y;
+				this.dragPath.tiles.push( foundDiv.number );
+				this.dragPath.lastTile = foundDiv.number;
+				this.dragPath.lastX = foundDiv.tile.x;
+				this.dragPath.lastY = foundDiv.tile.y;
 				
 				// we probaby need to do more here
 				// need to at least assign the active change here
-				this.tiles[ selectedTile ].selectTile();
+				foundDiv.tile.element.classList.add( "active" );
 
 			} else if( inStack != -1 ) {
-				console.log( selectedTile + " was found in the stack." );
 				var valAt = this.dragPath.tiles.length - 1;
 				if( inStack < valAt ) {
 					for( i = valAt; i < this.dragPath.tiles.length; i++ ) {
 						// @andymakesthings - make sure we remove the active class
 						document.getElementById( "tile-" + this.dragPath.tiles[ i ] ).classList.remove( "active" );
-						// @andymakesthings - instead use this.tiles[ selectedTile ].selectTile();		!!!	1/29/15 !!!
 						// @andymakesthings - remove the item from the array
 						
 					}
-					
 					this.dragPath.tiles.length = valAt;
-					this.dragPath.lastTile = this.dragPath.tiles[ this.dragPath.tiles.length ];
-				/*	this.dragPath.lastX = this.dragPath.tiles[ this.dragPath.tiles.length ].x;
-					this.dragPath.lastY = this.dragPath.tiles[ this.dragPath.tiles.length ].y;*/
+					this.dragPath.lastTile = this.dragPath.tiles.length;
+					this.dragPath.lastX = this.tiles[ this.dragPath.tiles.length ].x;
+					this.dragPath.lastY = this.tiles[ this.dragPath.tiles.length ].y;
 					
 				}
 			}
-			/*
+			
 			console.log( "Selected tiles are:" );
 			console.log( this.dragPath.tiles );
-			console.log( this.dragPath );
-			*/
+			
 		}
 	},
 	releaseTrigger: function () {
@@ -325,7 +300,6 @@ var grid = {
 	},
 	startDrag: function ( caller ) {
 		console.log( "ID = " + caller.dataset.id );
-		var callerID = parseInt( caller.dataset.id );
 		console.log( this.tiles[ caller.dataset.id ].gemColor );
 		this.mouseDown = true;
 		caller.classList.add( "active" );
@@ -338,9 +312,6 @@ var grid = {
 		this.dragPath.lastTile = pos;
 		this.dragPath.lastX = pos.x;
 		this.dragPath.lastY = pos.y;
-		
-	//	console.log( this.tiles[ callerID ] );
-	//	console.log( this.dragPath.tiles );
 	},
 	findDivAt: function ( x, y ) {
 		for( i = 0; i < this.tiles.length; i++ ) {
@@ -371,8 +342,8 @@ window.addEventListener("mouseup", function(){
 
 // Add mouse position tracking
 window.onmousemove = function ( e ) {
+//	console.log( e );
 	if( grid.mouseDown == true) {
-	//	console.log( e );
 		grid.mouseMove( e );
 	}
 }
