@@ -1,0 +1,143 @@
+* {
+	font-family: 'Varela Round', sans-serif;
+	
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+html, body {
+	margin:0;
+	padding:0;
+}
+
+#grid {
+	cursor:pointer;
+	height:100%;
+	margin:0;
+	padding:0;
+	position:relative;
+	width:100%;
+	z-index:0;
+}
+
+#player {
+	background-image: url( '../images/playerArrow.gif' );
+	height:50px;
+	margin:0;
+	padding:0;
+	position:absolute;
+	width:50px;
+	z-index:20;
+}
+
+.tile {
+	background-color:#cdc;
+	background-position:50% 50%;
+	background-repeat:no-repeat;
+	border-top:1px solid #dbb;
+	border-right:1px solid #789;
+	border-bottom:1px solid #789;
+	border-left:1px solid #dbb;
+	color:transparent;
+	content:",";
+	height:48px;
+	left:0;
+	position:absolute;
+	top:0;
+	width:48px;
+	z-index:10;
+}
+.tile:hover {
+/*	background-color:#9f9;	*/
+}
+.tile.active {
+	background-color:#959;
+}
+.tile[data-gem-color='purple'] {
+	background-image: url( '../kenney-puzzlepack/png/element_purple_diamond.png' );
+}
+.tile[data-gem-color='red'] {
+	background-image: url( '../kenney-puzzlepack/png/element_red_diamond.png' );
+}
+.tile[data-gem-color='yellow'] {
+	background-image: url( '../kenney-puzzlepack/png/element_yellow_diamond.png' );
+}
+.tile[data-gem-color='green'] {
+	background-image: url( '../kenney-puzzlepack/png/element_green_diamond.png' );
+}
+.tile[data-gem-color='blue'] {
+	background-image: url( '../kenney-puzzlepack/png/element_blue_diamond.png' );
+}
+.tile[data-gem-color='grey'] {
+	background-image: url( '../kenney-puzzlepack/png/element_grey_diamond.png' );
+}
+.tile[data-gem-color='purple']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_purple_diamond_glossy.png' );
+}
+.tile[data-gem-color='red']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_red_diamond_glossy.png' );
+}
+.tile[data-gem-color='yellow']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_yellow_diamond_glossy.png' );
+}
+.tile[data-gem-color='green']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_green_diamond_glossy.png' );
+}
+.tile[data-gem-color='blue']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_blue_diamond_glossy.png' );
+}
+.tile[data-gem-color='grey']:hover {
+	background-image: url( '../kenney-puzzlepack/png/element_grey_diamond_glossy.png' );
+}
+.tile[data-special='finish'][data-gem-color='purple'] {
+	background-image: url( '../kenney-puzzlepack/png/element_purple_polygon.png' );
+}
+.tile[data-special='finish'][data-gem-color='red'] {
+	background-image: url( '../kenney-puzzlepack/png/element_red_polygon.png' );
+}
+.tile[data-special='finish'][data-gem-color='yellow'] {
+	background-image: url( '../kenney-puzzlepack/png/element_yellow_polygon.png' );
+}
+.tile[data-special='finish'][data-gem-color='green'] {
+	background-image: url( '../kenney-puzzlepack/png/element_green_polygon.png' );
+}
+.tile[data-special='finish'][data-gem-color='blue'] {
+	background-image: url( '../kenney-puzzlepack/png/element_blue_polygon.png' );
+}
+.tile[data-special='finish'][data-gem-color='grey'] {
+	background-image: url( '../kenney-puzzlepack/png/element_grey_polygon.png' );
+}
+
+.tile.northEdge {
+	border-top:1px solid #000;
+}
+.tile.eastEdge {
+	border-right:1px solid #000;
+}
+.tile.southEdge {
+	border-bottom:1px solid #000;
+}
+.tile.westEdge {
+	border-left:1px solid #000;
+}
+
+
+#msg {
+	background-color:rgba( 122, 122, 122, 0.8 );
+	bottom:0;
+	margin:10px;
+	padding:10px;
+	position:absolute;
+}
+
+#score {
+	background-color:rgba( 122, 122, 122, 0.8 );
+	bottom:0;
+	left:350px;
+	margin:10px;
+	padding:10px;
+	position:absolute;
+}

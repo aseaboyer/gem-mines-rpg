@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Gem Mines RPG - Tile Dragging Mechanic</title>
+</head>
+<link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<link href='css/game.css' rel='stylesheet' type='text/css'>
+
+<body>
+<div id="grid"></div>
+<div id="msg"></div>
+<div id="score">Score: 0</div>
+
+<script src="js/Player.js"></script>
+<script src="js/Tile.js"></script>
+
+<script src="js/test-data-1.js"></script>
+
+<script>
+var und;
+
+var game = {
+	player: {},
+	tiles: [],
+	tileDims: 0,
+	score: 0,
+	mouseDown: false,
+	colors: [ ],
+	dragPath: {
+		color: '',
+		tiles: [],
+		minimum: 2,
+		lastTile: 0,
+		lastX: 0,
+		lastY: 0
+	},
+	mouse: {
+		position: {
+			x:0,
+			y:0,
+		}
+	},
+	init: function ( grd, dims ) {//, tilesX, tilesY ) {
+		//console.log( "INIT game" );
+		this.resize();
+	//	this.removeChildren();
+		this.tiles.length = 0;
+		this.tileDims = dims;
+	},
+	clearLevel: function ( grd, data, dims ) {
+		this.removeChildren();
+	},
+	buildLevel: function ( grd, data, dims ) {
+		//console.log( "Build game level" );
+		this.resize();
+		
+		// Create Player
+		this.player = new Player( grd, dims, this );
+		
+		this.colors = data.colors;
+	
+		for( i = 0; i < data.tiles.length; i++ ) {
+			var tile = data.tiles[ i ];
+			//console.log( tile );
+			if( tile.type == "randomGem" ) {
+				var newColor = this.getRandomColor();
+				var newTile =  new Tile( grd, tile.x, tile.y, dims, newColor, this, this.tiles.length );
+				if( tile.edges.n == true ) {
+					newTile.addClass( 'northEdge' );
+				}
+				if( tile.edges.e == true ) {
+					newTile.addClass( 'eastEdge' );
+				}
+				if( tile.edges.s == true ) {
+					newTile.addClass( 'southEdge' );
+				}
+				if( tile.edges.w == true ) {
+					newTile.addClass( 'westEdge' );
+				}
+				this.tiles.push( newTile );
+			}
+			if( tile.type == "playerStart" ) {
+				var newTile =  new Tile( grd, tile.x, tile.y, dims, und, this, this.tiles.length, "start" );
+				if( tile.edges.n == true ) {
+					newTile.addClass( 'northEdge' );
+				}
+				if( tile.edges.e == true ) {
+					newTile.addClass( 'eastEdge' );
+				}
+				if( tile.edges.s == true ) {
+					newTile.addClass( 'southEdge' );
+				}
+				if( tile.edges.w == true ) {
+					newTile.addClass( 'westEdge' );
+				}
+				this.tiles.push( newTile );
+				
+				this.player.position.x = tile.x;
+				this.player.position.y = tile.y;
+			}
+			if( tile.type == "playerEnd" ) {
+				var newColor = this.getRandomColor();
+				var newTile =  new Tile( grd, tile.x, tile.y, dims, newColor, this, this.tiles.length, "finish" );
+				if( tile.edges.n == true ) {
+					newTile.addClass( 'northEdge' );
+				}
+				if( tile.edges.e == true ) {
+					newTile.addClass( 'eastEdge' );
+				}
+				if( tile.edges.s == true ) {
+					newTile.addClass( 'southEdge' );
+				}
+				if( tile.edges.w == true ) {
+					newTile.addClass( 'westEdge' );
+				}
+				this.tiles.push( newTile );
+			}
+		}
+	},
+	getRandomColor: function () {
+		return this.colors[ Math.floor(Math.random() * this.colors.length) ];
+	},
+	removeChildren: function () {
+		var grid = document.getElementById("grid");
+		while (grid.firstChild) {
+			grid.removeChild( grid.firstChild );
+		}
+	},
+	update: function () {
+		
+	},
+	resize: function () {
+		var width = document.getElementById( "grid" ).offsetWidth;
+		//console.log( "grid width: " + this.width  );
+		
+		// This needs to figure out the largest square that fits?
+	},
+	mouseMove: function ( m ) {
+		var selectedTile = parseInt( m.target.dataset.id );
+		var mp = {
+			x: this.tiles[ selectedTile ].x,
+			y: this.tiles[ selectedTile ].y
+		};
+	//	console.log( "TileID to use " + selectedTile );
+		if( selectedTile != und ) {
+		//	console.log( this.dragPath.tiles );
+			
+			// check if this is in the stack
+			var inStack = this.dragPath.tiles.indexOf( selectedTile );
+		//	console.log( inStack );
+			
+			// check if this is the right color
+			var tileColor = this.tiles[ selectedTile ].gemColor;
+			
+			var lastTileNum = this.dragPath.tiles[ this.dragPath.tiles.length - 1 ];
+			// check to see if it's next to this
+			var lastPos = {
+				x: this.tiles[ lastTileNum ].x,
+				y: this.tiles[ lastTileNum ].y
+			};
+		//	console.log( lastPos );
+			var diffX = Math.abs( lastPos.x - mp.x );
+			var diffY = Math.abs( lastPos.y - mp.y );
+			var diff = Math.abs( ( lastPos.x - mp.x ) + ( lastPos.y - mp.y ) );
+			
+			if( inStack == -1 && tileColor == this.dragPath.color 
+				&& diff == 1 && diffX <=1 && diffY <= 1 ) {
+				this.dragPath.tiles.push( selectedTile );
+				this.dragPath.lastTile = selectedTile;
+				this.dragPath.lastX = this.tiles[ selectedTile ].x;
+				this.dragPath.lastY = this.tiles[ selectedTile ].y;
+				
+				this.tiles[ selectedTile ].selectTile();
+
+			} else if( inStack != -1 ) {
+		//		console.log( selectedTile + " was found in the stack." );
+				var valAt = this.dragPath.tiles.length - 1;
+				if( inStack < valAt ) {
+					for( i = valAt; i < this.dragPath.tiles.length; i++ ) {
+						document.getElementById( "tile-" + this.dragPath.tiles[ i ] ).classList.remove( "active" );
+						
+					}
+					
+					this.dragPath.tiles.length = valAt;
+					this.dragPath.lastTile = this.dragPath.tiles[ this.dragPath.tiles.length ];
+					
+				}
+			}
+		}
+	},
+	releaseTrigger: function () {
+		this.mouseDown = false;
+		var tileCount = this.dragPath.tiles.length;
+		var msgHolder = document.getElementById( "msg" );
+		var scoreHolder = document.getElementById( "score" );
+		
+		if( tileCount >= this.dragPath.minimum ) {
+			msgHolder.innerHTML = "Number of Tiles selected: " + tileCount;
+			this.score += tileCount;
+			scoreHolder.innerHTML = "Score: " + this.score;
+			
+			console.log( "Clear these" );
+			console.log( this.dragPath.tiles );
+			
+			var playerFound = { bool: false };
+			for( i = 0; i < this.dragPath.tiles.length; i++ ) {
+				if( playerFound.bool == false) {
+					// check around this compass point for player
+					var tile = this.tiles[ this.dragPath.tiles[ i ] ];
+				/*	console.log( "Check: " + ( tile.x ) + ", " + ( tile.y )  );
+					console.log( "Check: " + ( tile.x - 1 ) + ", " + ( tile.y ) + " for the player (" + this.player.position.x + ", " + this.player.position.y + ")" );
+					console.log( "Check: " + ( tile.x + 1 ) + ", " + ( tile.y ) + " for the player (" + this.player.position.x + ", " + this.player.position.y + ")" );
+					console.log( "Check: " + ( tile.x ) + ", " + ( tile.y - 1 ) + " for the player (" + this.player.position.x + ", " + this.player.position.y + ")" );
+					console.log( "Check: " + ( tile.x ) + ", " + ( tile.y + 1 ) + " for the player (" + this.player.position.x + ", " + this.player.position.y + ")" );
+				*/	
+					// @andymakesthings - If the player is at one of these spots, move the player up the other spots
+					
+					if( tile.x == this.player.position.x && tile.y - 1 == this.player.position.y ) {
+						playerFound.bool = true;
+						playerFound.foundAt = i;
+						playerFound.path = this.dragPath.tiles.slice( i, this.dragPath.tiles.length );
+						playerFound.direction = "north";
+					}
+					if( tile.x + 1 == this.player.position.x && tile.y == this.player.position.y ) {
+						playerFound.bool = true;
+						playerFound.foundAt = i;
+						playerFound.path = this.dragPath.tiles.slice( i, this.dragPath.tiles.length );
+						playerFound.direction = "east";
+					}
+					if( tile.x == this.player.position.x && tile.y + 1 == this.player.position.y ) {
+						playerFound.bool = true;
+						playerFound.foundAt = i;
+						playerFound.path = this.dragPath.tiles.slice( i, this.dragPath.tiles.length );
+						playerFound.direction = "south";
+					}
+					if( tile.x - 1 == this.player.position.x && tile.y == this.player.position.y ) {
+						playerFound.bool = true;
+						playerFound.foundAt = i;
+						playerFound.path = this.dragPath.tiles.slice( i, this.dragPath.tiles.length );
+						playerFound.direction = "west";
+					}
+					
+				}
+			}
+			//this.dragPath.tiles
+			console.log( "The player was found at::" );
+			console.log( playerFound );
+			
+			if( playerFound.bool == false ) {
+				for( i = 0; i < this.dragPath.tiles.length; i++ ) {
+					this.tiles[ this.dragPath.tiles[ i ] ].flipTile( this.getRandomColor() );
+				}
+			
+			} else {
+				// worry about animation later, prove gameplay now
+				
+				// clear the tile the player is currently on
+				var playerAt = this.findDivAt( this.player.position.x, this.player.position.y );
+				console.log( "Player is on tile: " + playerAt.number );
+					this.tiles[ playerAt.number ].flipTile( this.getRandomColor() );
+				
+				for( i = 0; i < this.dragPath.tiles.length - 1; i++ ) {
+					console.log( "Flip tile num: " + this.dragPath.tiles[ i ] );
+					this.tiles[ this.dragPath.tiles[ i ] ].flipTile( this.getRandomColor() );
+				}
+				console.log( this.dragPath.tiles );
+				var finalTile = this.tiles[ this.dragPath.tiles[ this.dragPath.tiles.length - 1 ] ];
+				console.log( finalTile );
+				finalTile.clearTile( );
+				this.player.position.change( finalTile.x, finalTile.y, this.tileDims );
+				
+				this.player.steps += playerFound.path.length;
+			}
+			console.log( "Cleared" );
+			
+		} else {
+			msgHolder.innerHTML = "Not enough Tiles selected (" + tileCount + " of " + this.dragPath.minimum + ")";
+		}
+		
+		// clear the data
+		this.dragPath.tiles.length = 0;
+		this.dragPath.color = '';
+		this.dragPath.lastTile = {};
+		this.dragPath.lastX = 0;
+		this.dragPath.lastY = 0;
+		
+		var tiles = document.getElementsByClassName( "tile" );
+		var tileCount = tiles.length;
+		for( x = 0; x < tileCount; x++ ) {
+			tiles[ x ].classList.remove( "active" );
+		}
+		
+	//	console.log( "Remove click" );
+	},
+	startDrag: function ( caller ) {
+	//	console.log( "ID = " + caller.dataset.id );
+		var callerID = parseInt( caller.dataset.id ); // can we can this?
+	//	console.log( this.tiles[ caller.dataset.id ].gemColor );
+		this.mouseDown = true;
+		caller.classList.add( "active" );
+		this.dragPath.color = caller.dataset.gemColor;
+		
+		var pos = {};
+			pos.y = parseInt( caller.style.top ) / this.tileDims;
+			pos.x = parseInt( caller.style.left ) / this.tileDims;
+		this.dragPath.tiles.push( parseInt( caller.dataset.id ) );
+		this.dragPath.lastTile = pos;
+		this.dragPath.lastX = pos.x;
+		this.dragPath.lastY = pos.y;
+	},
+	findDivAt: function ( x, y ) {
+		for( i = 0; i < this.tiles.length; i++ ) {
+			if( this.tiles[ i ].x == x && this.tiles[ i ].y == y ) {
+				return {
+					'tile': this.tiles[ i ],
+					'number': i
+				};
+			}
+		}
+	},
+};
+
+var player = {
+	score: 0,
+};
+
+window.onresize = resize;
+function resize() { 
+	game.resize();
+}
+
+// release all
+window.addEventListener("mouseup", function(){
+	game.releaseTrigger();
+}, false);
+
+// Add mouse position tracking
+window.onmousemove = function ( e ) {
+	if( game.mouseDown == true) {
+	//	console.log( e );
+		game.mouseMove( e );
+	}
+}
+
+// add animation states
+function animate() {
+	requestAnimationFrame( animate ); // only reqeust an update when needed?
+	game.update( );
+}
+
+var grd = document.getElementById( "grid" );
+game.init( grd, 50 );
+game.buildLevel( grd, levelData, 50 );
+animate();
+</script>
+
+</body>
+</html>
