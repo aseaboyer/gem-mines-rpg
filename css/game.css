@@ -32,6 +32,34 @@ html, body {
 	width:50px;
 	z-index:20;
 }
+#player[data-facing='north'] {
+	-webkit-transform: rotate(0deg);
+	-moz-transform: rotate(0deg);
+	-ms-transform: rotate(0deg);
+	-o-transform: rotate(0deg);
+	transform: rotate(0deg);
+}
+#player[data-facing='east'] {
+	-webkit-transform: rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+}
+#player[data-facing='south'] {
+	-webkit-transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-ms-transform: rotate(180deg);
+	-o-transform: rotate(180deg);
+	transform: rotate(180deg);
+}
+#player[data-facing='west'] {
+	-webkit-transform: rotate(270deg);
+	-moz-transform: rotate(270deg);
+	-ms-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
+	transform: rotate(270deg);
+}
 
 .tile {
 	background-color:#cdc;
@@ -122,6 +150,24 @@ html, body {
 }
 .tile.westEdge {
 	border-left:1px solid #000;
+}
+
+#tooltip {
+	background-color:#fff;
+	border:1px solid #666;
+	border-radius:8px;
+	border-top-left-radius:0;
+	display:none;
+	opacity:0;
+	padding:5px;
+	position:absolute;
+	transition:opacity 1000ms;
+	width:30%;
+	z-index:40;
+}
+#tooltip.active{
+	display:block;
+	opacity:0.7;
 }
 
 
