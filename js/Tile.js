@@ -23,7 +23,7 @@ function Tile ( grd, x, y, size, color, g, id, special ) {
 	if( special == "finish" ) {
 		// Create the tooltip
 		var tt = new Tooltip( 'tile-' + id, 
-			"This is an end tile. Open paths for to guide the hero to the end.",
+			"This is an end tile. Open paths to guide the hero to the end.",
 			( ( y + 1 ) * size ) + "px", ( ( x + 1 ) * size ) + "px" );
 		g.tooltips.push( tt ); // add it to the game object
 		var ttID = ( g.tooltips.length - 1 ); // apply that ID so we can use it in the hover functions
