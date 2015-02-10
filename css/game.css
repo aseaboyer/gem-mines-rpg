@@ -168,8 +168,94 @@ html, body {
 #tooltip.active{
 	display:block;
 	opacity:0.7;
+	box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+	
+	animation: tooltipHover linear 800ms infinite;
+	animation-iteration-count: infinite;
+	-webkit-animation: tooltipHover linear 800ms infinite;
+	-webkit-animation-iteration-count: infinite;
+	-moz-animation: tooltipHover linear 800ms infinite;
+	-moz-animation-iteration-count: infinite;
+	-o-animation: tooltipHover linear 800ms infinite;
+	-o-animation-iteration-count: infinite;
+	-ms-animation: tooltipHover linear 800ms infinite;
+	-ms-animation-iteration-count: infinite;
 }
 
+@keyframes tooltipHover{
+	0% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+	50% {
+		box-shadow:1px 1px 3px rgba( 122, 122, 122, 0.9);
+		margin-top:2px;
+	}
+	100% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+}
+
+@-moz-keyframes tooltipHover{
+	0% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+	50% {
+		box-shadow:1px 1px 3px rgba( 122, 122, 122, 0.9);
+		margin-top:2px;
+	}
+	100% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+}
+
+@-webkit-keyframes tooltipHover {
+	0% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+	50% {
+		box-shadow:1px 1px 3px rgba( 122, 122, 122, 0.9);
+		margin-top:2px;
+	}
+	100% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+}
+
+@-o-keyframes tooltipHover {
+	0% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+	50% {
+		box-shadow:1px 1px 3px rgba( 122, 122, 122, 0.9);
+		margin-top:2px;
+	}
+	100% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+}
+
+@-ms-keyframes tooltipHover {
+	0% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+	50% {
+		box-shadow:1px 1px 3px rgba( 122, 122, 122, 0.9);
+		margin-top:2px;
+	}
+	100% {
+		box-shadow:1px 3px 1px rgba( 122, 122, 122, 0.6);
+		margin-top:0;
+	}
+}
 
 #msg {
 	background-color:rgba( 122, 122, 122, 0.8 );
