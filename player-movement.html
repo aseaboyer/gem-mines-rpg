@@ -16,6 +16,7 @@
 
 <script src="js/Player.js"></script>
 <script src="js/Tile.js"></script>
+<script src="js/Time.js"></script>
 <script src="js/Tooltip.js"></script>
 
 <script src="js/test-data-1.js"></script>
@@ -24,6 +25,7 @@
 var und;
 
 var game = {
+	time: new Time(),
 	player: {},
 	tiles: [],
 	tileDims: 0,
@@ -39,15 +41,15 @@ var game = {
 		lastX: 0,
 		lastY: 0
 	},
-	moving: {
-		status: false,
-		path: []
-	},
 	mouse: {
 		position: {
 			x:0,
 			y:0,
 		}
+	},
+	moving: {
+		status: false,
+		path: []
 	},
 	init: function ( grd, dims ) {//, tilesX, tilesY ) {
 		//console.log( "INIT game" );
@@ -55,6 +57,59 @@ var game = {
 	//	this.removeChildren();
 		this.tiles.length = 0;
 		this.tileDims = dims;
+		
+		this.time.init(); // start timer
+	},
+	update: function () {
+		this.time.update();
+		
+		if( this.moving.status == true ) {
+			var lastPlayerPosition = this.player.position;
+			console.log( lastPlayerPosition );
+			
+			var destination = this.tiles[ this.moving.path[ 0 ] ].actual;
+			this.player.move( destination, this.time.delta );
+			
+			//console.log( destination.x + " -- " + this.player.position.actual.x );
+			if( this.player.position.actual.x == destination.x && 
+				this.player.position.actual.y == destination.y ) {
+				
+				// flip the last tile
+				var findLastTilePos = this.findDivAt( 
+					lastPlayerPosition.x,
+					lastPlayerPosition.y
+				);
+				findLastTilePos.tile.flipTile( this.getRandomColor() );
+				// clear the next tile
+				this.tiles[ this.moving.path[ 0 ] ].clearTile( );
+				/*var findTileNum = this.findDivAt( 
+					this.tiles[ this.moving.path[ 0 ] ].x,
+					this.tiles[ this.moving.path[ 0 ] ].y
+				);*/
+				//console.log( "flip:" + findTileNum ); // @aseaboyer - flip the tile the player WAS on instead
+				//console.log( findTileNum ); // @aseaboyer - flip the tile the player WAS on instead
+				
+				// at a tile, 
+				this.player.position.set( this.tiles[ this.moving.path[ 0 ] ].x, this.tiles[ this.moving.path[ 0 ] ].y );
+				//console.log( "Moving player to::" );
+				//console.log( this.player.position );
+				
+				this.moving.path.shift();
+				//console.log( "this.moving.path.length = " + this.moving.path.length );
+				if( this.moving.path.length <= 0 ) {
+					this.moving.status = false;
+				} else {
+					this.tooltips[ this.player.tooltipID ].changePosition(
+						(( this.tiles[ this.moving.path[ 0 ] ].x * this.tileDims ) + this.tileDims ) + "px",
+						(( this.tiles[ this.moving.path[ 0 ] ].y * this.tileDims ) + this.tileDims ) + "px"
+					);
+					
+					var newDir = this.player.findDirection( this.tiles[ this.moving.path[ 0 ] ] );
+					this.player.turn( newDir );
+					//console.log( "Face: " + newDir );
+				}
+			}
+		}
 	},
 	clearLevel: function ( grd, data, dims ) {
 		this.removeChildren();
@@ -135,9 +190,6 @@ var game = {
 			grid.removeChild( grid.firstChild );
 		}
 	},
-	update: function () {
-		
-	},
 	resize: function () {
 		var width = document.getElementById( "grid" ).offsetWidth;
 		//console.log( "grid width: " + this.width  );
@@ -146,6 +198,8 @@ var game = {
 	},
 	mouseMove: function ( m ) {
 		var selectedTile = parseInt( m.target.dataset.id );
+		// Sometimes these x/y values aren't found
+		//console.log( this.tiles[ selectedTile ] );
 		var mp = {
 			x: this.tiles[ selectedTile ].x,
 			y: this.tiles[ selectedTile ].y
@@ -209,8 +263,8 @@ var game = {
 				this.score += tileCount;
 				scoreHolder.innerHTML = "Score: " + this.score;
 				
-				console.log( "Clear these" );
-				console.log( this.dragPath.tiles );
+				//console.log( "Clear these" );
+				//console.log( this.dragPath.tiles );
 				
 				var playerFound = { bool: false };
 				for( i = 0; i < this.dragPath.tiles.length; i++ ) {
@@ -253,8 +307,8 @@ var game = {
 					}
 				}
 				//this.dragPath.tiles
-				console.log( "The player was found at::" );
-				console.log( playerFound );
+				//console.log( "The player was found at::" );
+				//console.log( playerFound );
 				
 				if( playerFound.bool == false ) {
 					for( i = 0; i < this.dragPath.tiles.length; i++ ) {
@@ -262,13 +316,22 @@ var game = {
 					}
 				
 				} else {
+					console.log( "Player movement GO GO GO" );
+					
+					var playerAt = this.findDivAt( this.player.position.x, this.player.position.y );
+					
+					this.startMovement( playerAt, playerFound.path );
+					
+					var newDir = this.player.findDirection( this.tiles[ playerFound.path[ 0 ] ] );
+					this.player.turn( newDir );
+					
 					// @andymakesthings
 					// This whole block needs to just be stored in this.moving and set this.moving.status set to true
 					// later this.update will move when this.moving.status == true
 					// @andymakesthings
-					
+					// @andymakesthings - pretty sure this is working correctly
+					/*
 					// clear the tile the player is currently on
-					var playerAt = this.findDivAt( this.player.position.x, this.player.position.y );
 					console.log( "Player is on tile: " + playerAt.number );
 						this.tiles[ playerAt.number ].flipTile( this.getRandomColor() );
 					
@@ -286,6 +349,9 @@ var game = {
 					this.player.position.change( finalTile.x, finalTile.y, this.tileDims );
 					
 					this.player.steps += playerFound.path.length;
+					*/
+					
+					
 				}
 				console.log( "Cleared" );
 				
@@ -310,20 +376,22 @@ var game = {
 		
 	},
 	startDrag: function ( caller ) {
-	//	console.log( "ID = " + caller.dataset.id );
-		var callerID = parseInt( caller.dataset.id ); // can we can this?
-	//	console.log( this.tiles[ caller.dataset.id ].gemColor );
-		this.mouseDown = true;
-		caller.classList.add( "active" );
-		this.dragPath.color = caller.dataset.gemColor;
-		
-		var pos = {};
-			pos.y = parseInt( caller.style.top ) / this.tileDims;
-			pos.x = parseInt( caller.style.left ) / this.tileDims;
-		this.dragPath.tiles.push( parseInt( caller.dataset.id ) );
-		this.dragPath.lastTile = pos;
-		this.dragPath.lastX = pos.x;
-		this.dragPath.lastY = pos.y;
+		if( !this.moving.status ) {
+		//	console.log( "ID = " + caller.dataset.id );
+			var callerID = parseInt( caller.dataset.id ); // can we can this?
+		//	console.log( this.tiles[ caller.dataset.id ].gemColor );
+			this.mouseDown = true;
+			caller.classList.add( "active" );
+			this.dragPath.color = caller.dataset.gemColor;
+			
+			var pos = {};
+				pos.y = parseInt( caller.style.top ) / this.tileDims;
+				pos.x = parseInt( caller.style.left ) / this.tileDims;
+			this.dragPath.tiles.push( parseInt( caller.dataset.id ) );
+			this.dragPath.lastTile = pos;
+			this.dragPath.lastX = pos.x;
+			this.dragPath.lastY = pos.y;
+		}
 	},
 	findDivAt: function ( x, y ) {
 		for( i = 0; i < this.tiles.length; i++ ) {
@@ -337,8 +405,8 @@ var game = {
 	},
 	showToolTip: function ( id ) {
 		var ttEle = document.getElementById( "tooltip" );
-		ttEle.style.top = this.tooltips[ id ].pos.x;
-		ttEle.style.left = this.tooltips[ id ].pos.y;
+		ttEle.style.top = this.tooltips[ id ].pos.y;
+		ttEle.style.left = this.tooltips[ id ].pos.x;
 		ttEle.innerHTML = this.tooltips[ id ].text;
 		ttEle.classList.add( 'active' );
 	},
@@ -349,10 +417,13 @@ var game = {
 		ttEle.innerHTML = "";
 		ttEle.classList.remove( 'active' );
 	},
-};
-
-var player = {
-	score: 0,
+	startMovement: function ( playerStart, path ) {
+		console.log( "Player start at " + this.tiles[ playerStart ] + " and travels along:" );
+		console.log( path );
+		
+		this.moving.status = true;
+		this.moving.path = path;
+	},
 };
 
 window.onresize = resize;
